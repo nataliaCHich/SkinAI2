@@ -70,19 +70,26 @@ struct MainScreenView: View {
                     
                     // Second Tab - Camera
                     ZStack {
-                        // Gradient remains the same
-                        LinearGradient(gradient: Gradient(colors: [
-                            Color.blue.opacity(0.3),
-                            Color.pink.opacity(0.0)
-                        ]), startPoint: .topLeading, endPoint: .bottomTrailing)
-                        .ignoresSafeArea()
+                        TabView(selection: $selectedTab) {
+                            // First Tab (Home) remains exactly the same
+                            
+                            // Second Tab - Camera
+                            CameraView() // Replace the entire ZStack with CameraView
+                            .tabItem {
+                                
+                               
+                            }
+                            .tag(1)
+                            
+                            // Third Tab (Calendar) remains exactly the same
+                        }
+                        .accentColor(.blue)
                         
-                        // Add your camera content here
-                       
+                        // Profile picture overlay remains exactly the same
                     }
                     .tabItem {
                         Image(systemName: "camera.fill")
-                        Text("Camera")
+                        CameraView()
                     }
                     .tag(1)
                     
