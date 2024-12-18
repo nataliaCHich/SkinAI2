@@ -102,8 +102,9 @@ struct MainScreenView: View {
                         ]), startPoint: .topLeading, endPoint: .bottomTrailing)
                         .ignoresSafeArea()
                         
-                        // Add your calendar content here
-                        Text("Calendar View")
+                        Text("This page will be available soon")
+                            .font(.title)
+                            .foregroundColor(.blue)
                     }
                     .tabItem {
                         Image(systemName: "calendar")

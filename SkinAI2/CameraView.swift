@@ -8,7 +8,7 @@ struct CameraView: View {
     @State private var image: UIImage?
     @State private var predictionText: String = ""
     
-    // Create a reference to your Core ML model
+    // Create a reference to  Core ML model
     private var model: VNCoreMLModel? = {
         do {
             let modelConfig = MLModelConfiguration()
@@ -24,37 +24,66 @@ struct CameraView: View {
     @StateObject private var analysisManager = SkinAnalysisManager()
     
     var body: some View {
-        VStack {
-            if let image = image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 300, height: 300)
-                
-                Text(predictionText)
-                    .padding()
-                
-                Button("Analyze Image") {
-                    if let model = model {
-                        classifyImage(image, model: model)
-                    }
-                }
-                .padding()
-                
-                // Add Save button
-                if !predictionText.isEmpty {
-                    Button("Save Analysis") {
-                        saveAnalysis(image)
-                    }
-                    .padding()
-                }
-            }
+        ZStack {
+            LinearGradient(gradient: Gradient(colors: [
+                Color.blue.opacity(0.3),
+                Color.pink.opacity(0.0)
+            ]), startPoint: .topLeading, endPoint: .bottomTrailing)
+            .ignoresSafeArea()
             
-            Button("Take Photo") {
-                showingCamera = true
-            }
-            .sheet(isPresented: $showingCamera) {
-                CustomImagePicker(image: $image, sourceType: .camera)
+            VStack {
+                if let image = image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 200)
+                        .cornerRadius(15)
+                        
+                    
+                    Text(predictionText)
+                        .foregroundColor(.blue)
+                        .padding()
+                    
+                    Button("Analyze Image") {
+                        if let model = model {
+                            classifyImage(image, model: model)
+                        }
+                    }
+                    .font(.title2)
+                    .foregroundColor(.blue)
+                    .frame(maxWidth: 330)
+                    .padding(.vertical, 15)
+                    .background(Color.white.opacity(0.8))
+                    .cornerRadius(15)
+                    .padding()
+                    
+                    if !predictionText.isEmpty {
+                        Button("Save Analysis") {
+                            saveAnalysis(image)
+                        }
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                        .frame(maxWidth: 330)
+                        .padding(.vertical, 15)
+                        .background(Color.white.opacity(0.8))
+                        .cornerRadius(15)
+                        .padding()
+                    }
+                }
+                
+                Button("Take Photo") {
+                    showingCamera = true
+                }
+                .font(.title2)
+                .foregroundColor(.blue)
+                .frame(maxWidth: 330)
+                .padding(.vertical, 15)
+                .background(Color.white.opacity(0.8))
+                .cornerRadius(15)
+                .padding()
+                .sheet(isPresented: $showingCamera) {
+                    CustomImagePicker(image: $image, sourceType: .camera)
+                }
             }
         }
     }
