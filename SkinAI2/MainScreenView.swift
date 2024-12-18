@@ -3,6 +3,7 @@ import SwiftUI
 struct MainScreenView: View {
     @AppStorage("storedUserName") private var userName: String = "Beautiful"
     @State private var showProfile = false
+    @State private var showCamera = false
     @State private var selectedTab = 0
     
     var body: some View {
@@ -77,7 +78,7 @@ struct MainScreenView: View {
                         .ignoresSafeArea()
                         
                         // Add your camera content here
-                        CameraView()
+                       
                     }
                     .tabItem {
                         Image(systemName: "camera.fill")

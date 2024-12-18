@@ -1,18 +1,27 @@
-//
-//  SkinEntry.swift
-//  SkinAI2
-//
-//  Created by Chicherova Natalia2 on 18/12/24.
-//
-
 import SwiftUI
 
-struct SkinEntry: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+struct SkinEntry: Identifiable, Codable {
+    let id: UUID
+    let imageFileName: String
+    let date: Date
+    var description: String
+    
+    init(id: UUID = UUID(), image: UIImage, date: Date, description: String) {
+        self.id = id
+        self.imageFileName = id.uuidString
+        self.date = date
+        self.description = description
+        
+        // Save image to documents directory
+        if let data = image.jpegData(compressionQuality: 0.8) {
+            let filename = Self.getDocumentsDirectory().appendingPathComponent(imageFileName)
+            try? data.write(to: filename)
+        }
+    }
+    
+    static func getDocumentsDirectory() -> URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 }
 
-#Preview {
-    SkinEntry()
-}
+// End of file. No additional code.
