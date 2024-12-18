@@ -6,6 +6,7 @@ struct MySkinView: View {
     @State private var showingDescriptionSheet = false
     @State private var tempImage: UIImage?
     @State private var tempDescription: String = ""
+    @StateObject private var analysisManager = SkinAnalysisManager()
 
     var body: some View {
         NavigationView {
@@ -18,38 +19,38 @@ struct MySkinView: View {
                 )
                 .ignoresSafeArea()
 
-                 List {
-                     ForEach(entriesManager.entries) { entry in
-                         ZStack {
-                             RoundedRectangle(cornerRadius: 15) // Rounded corners for the row
-                                 .fill(Color.white) // Background color
-                                 .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 2)
+                List {
+                    ForEach(entriesManager.entries) { entry in
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 15) // Rounded corners for the row
+                                .fill(Color.white) // Background color
+                                .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 2)
 
-                             VStack(alignment: .leading, spacing: 8) {
-                                 if let image = entriesManager.loadImage(for: entry) {
-                                     Image(uiImage: image)
-                                         .resizable()
-                                         .scaledToFit()
-                                         .frame(height: 200)
-                                         .cornerRadius(15) // Rounded corners for images
-                                 }
+                            VStack(alignment: .leading, spacing: 8) {
+                                if let image = entriesManager.loadImage(for: entry) {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(height: 200)
+                                        .cornerRadius(15) // Rounded corners for images
+                                }
 
-                                 Text(entry.date.formatted())
-                                     .font(.caption)
-                                     .foregroundColor(.blue)
+                                Text(entry.date.formatted())
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
 
-                                 Text(entry.description)
-                                     .foregroundColor(.blue)
-                             }
-                             .padding()
-                         }
-                         .padding(.vertical, 8) // Add spacing between rows
-                         .listRowSeparator(.hidden) // Optional: Hide separators
-                         .listRowBackground(Color.clear) // Clear default list row background
-                     }
-                     .onDelete(perform: entriesManager.deleteEntries) // Enable delete functionality
-                 }
-                 .scrollContentBackground(.hidden) // Remove default list background
+                                Text(entry.description)
+                                    .foregroundColor(.blue)
+                            }
+                            .padding()
+                        }
+                        .padding(.vertical, 8) // Add spacing between rows
+                        .listRowSeparator(.hidden) // Optional: Hide separators
+                        .listRowBackground(Color.clear) // Clear default list row background
+                    }
+                    .onDelete(perform: entriesManager.deleteEntries) // Enable delete functionality
+                }
+                .scrollContentBackground(.hidden) // Remove default list background
                 .listStyle(PlainListStyle()) // Cleaner list style
                 .scrollContentBackground(.hidden)
             }
@@ -106,6 +107,27 @@ struct MySkinView: View {
                         }
                     }
                 }
+                List(analysisManager.analyses) { analysis in
+                    VStack(alignment: .leading, spacing: 10) {
+                        if let uiImage = UIImage(data: analysis.imageData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 200)
+                        }
+                        
+                        Text("Prediction: \(analysis.prediction)")
+                            .font(.headline)
+                        
+                        Text("Confidence: \(analysis.confidence * 100, specifier: "%.1f")%")
+                            .font(.subheadline)
+                        
+                        Text("Date: \(analysis.date.formatted())")
+                            .font(.caption)
+                    }
+                    .padding(.vertical)
+                }
+                .navigationTitle("My Skin Analysis")
             }
         }
     }

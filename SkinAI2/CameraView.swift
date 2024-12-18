@@ -20,6 +20,9 @@ struct CameraView: View {
         }
     }()
     
+    // Add SkinAnalysisManager
+    @StateObject private var analysisManager = SkinAnalysisManager()
+    
     var body: some View {
         VStack {
             if let image = image {
@@ -37,6 +40,14 @@ struct CameraView: View {
                     }
                 }
                 .padding()
+                
+                // Add Save button
+                if !predictionText.isEmpty {
+                    Button("Save Analysis") {
+                        saveAnalysis(image)
+                    }
+                    .padding()
+                }
             }
             
             Button("Take Photo") {
@@ -62,6 +73,23 @@ struct CameraView: View {
         
         let handler = VNImageRequestHandler(ciImage: ciImage, options: [:])
         try? handler.perform([request])
+    }
+    
+    // Add function to save analysis
+    private func saveAnalysis(_ image: UIImage) {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+        
+        // Parse prediction text to get confidence
+        let components = predictionText.components(separatedBy: "- Confidence: ")
+        let prediction = components[0].replacingOccurrences(of: "Prediction: ", with: "")
+        let confidenceString = components[1].replacingOccurrences(of: "%", with: "")
+        let confidence = Double(confidenceString) ?? 0.0
+        
+        let analysis = SkinAnalysis(imageData: imageData,
+                                    prediction: prediction,
+                                    confidence: confidence/100.0)
+        
+        analysisManager.addAnalysis(analysis)
     }
 }
 
