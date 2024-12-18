@@ -50,8 +50,6 @@ struct MySkinView: View {
                      .onDelete(perform: entriesManager.deleteEntries) // Enable delete functionality
                  }
                  .scrollContentBackground(.hidden) // Remove default list background
-
-                .scrollContentBackground(.hidden)
                 .listStyle(PlainListStyle()) // Cleaner list style
                 .scrollContentBackground(.hidden)
             }
