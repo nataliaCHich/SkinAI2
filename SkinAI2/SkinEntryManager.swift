@@ -30,7 +30,21 @@ class SkinEntriesManager: ObservableObject {
             entries = decoded
         }
     }
+    
+    func deleteEntry(at index: Int) {
+        let entry = entries[index]
+        // Delete the image file
+        let filename = SkinEntry.getDocumentsDirectory().appendingPathComponent(entry.imageFileName)
+        try? FileManager.default.removeItem(at: filename)
+        
+        // Remove the entry from the array
+        entries.remove(at: index)
+        saveEntries()
+    }
+    
+    func deleteEntries(at offsets: IndexSet) {
+        for index in offsets {
+            deleteEntry(at: index)
+        }
+    }
 }
-
-// End of file. No additional code.
-
