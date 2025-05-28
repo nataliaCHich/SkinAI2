@@ -66,27 +66,17 @@ struct MainScreenView: View {
                     CameraView() // CameraView will get entriesManager from environment
                         .tabItem {
                             Image(systemName: "camera.fill")
-                            Text("Camera")
+                            Text("Camera") 
                         }
                         .tag(1)
                     
-                    // Third Tab - Calendar
-                    ZStack {
-                        LinearGradient(gradient: Gradient(colors: [
-                            Color.blue.opacity(0.3),
-                            Color.pink.opacity(0.0)
-                        ]), startPoint: .topLeading, endPoint: .bottomTrailing)
-                        .ignoresSafeArea()
-                        
-                        Text("This page will be available soon")
-                            .font(.title)
-                            .foregroundColor(.blue)
-                    }
-                    .tabItem {
-                        Image(systemName: "calendar")
-                        Text("Calendar")
-                    }
-                    .tag(2)
+                    // Third Tab - Advice
+                    RecommendationsView()
+                        .tabItem {
+                            Image(systemName: "lightbulb.fill")
+                            Text("Advice")
+                        }
+                        .tag(2)
                 }
                 .accentColor(.blue)
                 // .environmentObject(entriesManager)

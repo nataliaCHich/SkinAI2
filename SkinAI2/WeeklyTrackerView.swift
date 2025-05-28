@@ -4,7 +4,16 @@ struct WeeklyTrackerView: View {
     // Properties
     let daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     @State private var showTip = false
-    @State private var checkedDays: Set<String> = [] // Add this property
+    @State private var checkedDays: Set<String> = [] 
+    @State private var currentDailyTip: String = "Remember to cleanse your face twice daily!" 
+
+    private let fiveGeneralSkincareTips: [String] = [
+        "Stay hydrated by drinking plenty of water.",
+        "Always remove makeup before bed.",
+        "Get 7-9 hours of sleep for skin regeneration.",
+        "Use SPF 30+ sunscreen daily, even indoors.",
+        "Moisturize your skin morning and night."
+    ]
     
     var body: some View {
         VStack(spacing: 15) {
@@ -12,7 +21,6 @@ struct WeeklyTrackerView: View {
                 .font(.title2)
                 .foregroundColor(.blue)
                 .padding(.horizontal)
-                .transition(.opacity)
             
             HStack(spacing: 20) {
                 ForEach(daysOfWeek, id: \.self) { day in
@@ -21,7 +29,6 @@ struct WeeklyTrackerView: View {
                             .font(.caption)
                             .foregroundColor(.gray)
                         
-                        // Replace Circle with Toggle
                         Button(action: {
                             if checkedDays.contains(day) {
                                 checkedDays.remove(day)
@@ -39,9 +46,19 @@ struct WeeklyTrackerView: View {
             }
             .padding(.horizontal)
             
-            // Rest of the view remains the same
             Button(action: {
-                showTip.toggle()
+                if !fiveGeneralSkincareTips.isEmpty {
+                    var newTip = currentDailyTip
+                    if fiveGeneralSkincareTips.count > 1 { 
+                        while newTip == currentDailyTip {
+                            newTip = fiveGeneralSkincareTips.randomElement()! 
+                        }
+                    } else if !fiveGeneralSkincareTips.isEmpty {
+                        newTip = fiveGeneralSkincareTips.first!
+                    }
+                    currentDailyTip = newTip
+                }
+                showTip.toggle() 
             }) {
                 Text("💡 Daily Tip")
                     .foregroundColor(.blue)
@@ -52,7 +69,7 @@ struct WeeklyTrackerView: View {
             }
             
             if showTip {
-                Text("Remember to cleanse your face twice daily!")
+                Text(currentDailyTip)
                     .font(.caption)
                     .foregroundColor(.gray)
                     .padding(.horizontal)
@@ -66,11 +83,8 @@ struct WeeklyTrackerView: View {
     }
 }
 
-
 struct WeeklyTrackerView_Previews: PreviewProvider {
     static var previews: some View {
         WeeklyTrackerView()
     }
 }
-
-

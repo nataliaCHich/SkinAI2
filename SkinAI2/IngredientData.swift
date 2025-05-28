@@ -24,43 +24,49 @@ let ingredientDatabase: [String: IngredientInfo] = [
         name: "Salicylic Acid",
         aliases: ["bha"],
         goodFor: [.acneProne, .oily],
+        badFor: nil, 
         description: "A Beta Hydroxy Acid (BHA) that exfoliates the skin and can help clear pores."
     ),
     "hyaluronic acid": IngredientInfo(
         name: "Hyaluronic Acid",
         aliases: ["sodium hyaluronate"],
         goodFor: [.dry, .normal, .sensitive],
+        badFor: nil, 
         description: "A humectant that draws moisture to the skin, helping with hydration."
     ),
     "benzoyl peroxide": IngredientInfo(
         name: "Benzoyl Peroxide",
         aliases: [],
         goodFor: [.acneProne],
-        badFor: [.sensitive, .dry], // Can be drying/irritating
+        badFor: [.sensitive, .dry], 
         description: "An antibacterial ingredient effective against acne, but can be harsh."
     ),
     "fragrance": IngredientInfo(
         name: "Fragrance",
         aliases: ["parfum"],
+        goodFor: nil, 
         badFor: [.sensitive],
         description: "Can cause irritation or allergic reactions in sensitive individuals."
     ),
     "alcohol denat.": IngredientInfo(
         name: "Alcohol Denat.",
         aliases: ["denatured alcohol"],
+        goodFor: nil, 
         badFor: [.dry, .sensitive],
         description: "Can be drying and irritating for some skin types."
     ),
     "glycerin": IngredientInfo(
         name: "Glycerin",
         aliases: [],
-        goodFor: [.dry, .normal, .sensitive, .oily], // Generally good for most
+        goodFor: [.dry, .normal, .sensitive, .oily], 
+        badFor: nil, 
         description: "A common humectant that helps to hydrate the skin."
     ),
     "niacinamide": IngredientInfo(
         name: "Niacinamide",
         aliases: ["vitamin b3"],
-        goodFor: [.acneProne, .oily, .sensitive, .normal], // Versatile
+        goodFor: [.acneProne, .oily, .sensitive, .normal], 
+        badFor: nil, 
         description: "Helps with redness, pore size, and skin barrier function."
     )
     // ... Add more ingredients

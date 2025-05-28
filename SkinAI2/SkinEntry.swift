@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SkinEntry: Identifiable, Codable {
+struct SkinEntry: Identifiable, Codable, Equatable {
     let id: UUID
     let imageFileName: String
     let date: Date
@@ -39,4 +39,15 @@ struct SkinEntry: Identifiable, Codable {
     static func getDocumentsDirectory() -> URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
+
+    // if all stored properties are Equatable. UUID, String, Date, Double are all Equatable.
+    // static func == (lhs: SkinEntry, rhs: SkinEntry) -> Bool {
+    //     return lhs.id == rhs.id &&
+    //            lhs.imageFileName == rhs.imageFileName &&
+    //            lhs.date == rhs.date &&
+    //            lhs.description == rhs.description &&
+    //            lhs.confidence == rhs.confidence
+    // }
+    // Since all properties are Equatable, we can omit the explicit == function,
+    // and the compiler will synthesize it for us.
 }

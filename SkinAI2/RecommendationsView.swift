@@ -13,6 +13,14 @@ struct RecommendationsView: View {
     
     private var recommendationTypesInOrder: [RecommendationType] = [.generalTip, .ingredientToSeek, .ingredientToAvoid]
 
+    private var sortedRecommendationGroups: [(type: RecommendationType, recommendations: [SkincareRecommendation])] {
+        return recommendationTypesInOrder.compactMap { type -> (RecommendationType, [SkincareRecommendation])? in
+            guard let recommendations = groupedRecommendations[type], !recommendations.isEmpty else {
+                return nil
+            }
+            return (type, recommendations)
+        }
+    }
 
     var body: some View {
         NavigationView {
@@ -37,19 +45,11 @@ struct RecommendationsView: View {
                         ).padding()
                     } else {
                         List {
-                            ForEach(recommendationTypesInOrder, id: \.self) { type in
-                                if let recommendationsForType = groupedRecommendations[type], !recommendationsForType.isEmpty {
-                                    Section(header: Text(type.rawValue).font(.headline).foregroundColor(.blue.opacity(0.8))) {
-                                        ForEach(recommendationsForType) { recommendation in
-                                            VStack(alignment: .leading, spacing: 5) {
-                                                Text(recommendation.title)
-                                                    .font(.headline)
-                                                Text(recommendation.description)
-                                                    .font(.subheadline)
-                                                    .foregroundColor(.gray)
-                                            }
-                                            .padding(.vertical, 5)
-                                        }
+                            ForEach(sortedRecommendationGroups, id: \.type) { group in
+                                // Explicitly create a Section for each group
+                                Section(header: Text(group.type.rawValue).font(.headline).foregroundColor(.blue.opacity(0.8))) {
+                                    ForEach(group.recommendations) { recommendation in
+                                        RecommendationRow(recommendation: recommendation)
                                     }
                                 }
                             }
@@ -60,7 +60,7 @@ struct RecommendationsView: View {
                 }
                 .navigationTitle("Skincare Advice")
                 .onAppear(perform: loadRecommendations)
-                .onChange(of: entriesManager.entries) { _, _ in // Reload if entries change
+                .onChange(of: entriesManager.entries) { _, _ in
                     loadRecommendations()
                 }
             }
@@ -85,6 +85,21 @@ struct RecommendationsView: View {
         
         currentAdvisedCondition = mapMLPredictionToAdvisedCondition(latestPrediction)
         currentRecommendations = recommendationEngine.generateRecommendations(for: currentAdvisedCondition)
+    }
+}
+
+struct RecommendationRow: View {
+    let recommendation: SkincareRecommendation
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(recommendation.title)
+                .font(.headline)
+            Text(recommendation.description)
+                .font(.subheadline)
+                .foregroundColor(.gray)
+        }
+        .padding(.vertical, 5)
     }
 }
 
