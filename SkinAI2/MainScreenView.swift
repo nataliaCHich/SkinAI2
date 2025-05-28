@@ -27,29 +27,33 @@ struct MainScreenView: View {
                                 .font(.largeTitle)
                                 .foregroundColor(.blue)
                                 .padding(.bottom, -5)
+                                .padding(.top, 20)
                            
                             WeeklyTrackerView()
-                            
+
                             VStack(spacing: 20) {
-                                NavigationLink(destination: MySkinView()) { // MySkinView will get entriesManager from environment
-                                    Text("My Skin")
-                                        .font(.title2)
-                                        .foregroundColor(.blue)
-                                        .frame(maxWidth: 330)
-                                        .padding(.vertical, 15)
-                                        .background(Color.white.opacity(0.8))
-                                        .cornerRadius(15)
+                                VStack(spacing: 20) {
+                                    NavigationLink(destination: MySkinView()) { // MySkinView will get entriesManager from environment
+                                        Text("My Skin")
+                                            .font(.title2)
+                                            .foregroundColor(.blue)
+                                            .frame(maxWidth: 330)
+                                            .padding(.vertical, 15)
+                                            .background(Color.white.opacity(0.8))
+                                            .cornerRadius(15)
+                                    }
+                                    
+                                    NavigationLink(destination: MyProductsView()) {
+                                        Text("My Products")
+                                            .font(.title2)
+                                            .foregroundColor(.blue)
+                                            .frame(maxWidth: 330)
+                                            .padding(.vertical, 15)
+                                            .background(Color.white.opacity(0.8))
+                                            .cornerRadius(15)
+                                    }
                                 }
-                                
-                                NavigationLink(destination: MyProductsView()) {
-                                    Text("My Products")
-                                        .font(.title2)
-                                        .foregroundColor(.blue)
-                                        .frame(maxWidth: 330)
-                                        .padding(.vertical, 15)
-                                        .background(Color.white.opacity(0.8))
-                                        .cornerRadius(15)
-                                }
+                                .padding(.horizontal)
                             }
                             .padding(.horizontal)
                             

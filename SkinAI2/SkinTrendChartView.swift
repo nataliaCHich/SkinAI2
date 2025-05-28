@@ -54,7 +54,7 @@ struct SkinTrendChartView: View {
                         y: .value("Confidence", dataPoint.confidence)
                     )
                     .foregroundStyle(Color.blue)
-                    .annotation(position: .overlay, alignment: .bottom, spacing: 5) {
+                    .annotation(position: .top, alignment: .center, spacing: 5) { 
                         Text(dataPoint.classificationLabel)
                             .font(.caption2)
                             .padding(3)
