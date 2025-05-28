@@ -7,8 +7,9 @@ struct CameraView: View {
     @State private var showingCamera = false
     @State private var image: UIImage?
     @State private var predictionText: String = ""
+    @State private var classifiedIdentifier: String? = nil
+    @State private var classifiedConfidence: Double? = nil // Store as 0.0-1.0
     
-    // Create a reference to  Core ML model
     private var model: VNCoreMLModel? = {
         do {
             let modelConfig = MLModelConfiguration()
@@ -20,8 +21,8 @@ struct CameraView: View {
         }
     }()
     
-    // Add SkinAnalysisManager
     @StateObject private var analysisManager = SkinAnalysisManager()
+    @EnvironmentObject var entriesManager: SkinEntriesManager
     
     var body: some View {
         ZStack {
@@ -57,8 +58,8 @@ struct CameraView: View {
                     .cornerRadius(15)
                     .padding()
                     
-                    if !predictionText.isEmpty {
-                        Button("Save Analysis") {
+                    if classifiedIdentifier != nil && classifiedConfidence != nil {
+                        Button("Save Analysis & Add to Journal") {
                             saveAnalysis(image)
                         }
                         .font(.title2)
@@ -72,7 +73,15 @@ struct CameraView: View {
                 }
                 
                 Button("Take Photo") {
-                    showingCamera = true
+                    self.image = nil
+                    self.predictionText = ""
+                    self.classifiedIdentifier = nil
+                    self.classifiedConfidence = nil
+                    if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                        showingCamera = true
+                    } else {
+                        print("Camera is not available on this device.")
+                    }
                 }
                 .font(.title2)
                 .foregroundColor(.blue)
@@ -95,30 +104,65 @@ struct CameraView: View {
             if let results = request.results as? [VNClassificationObservation],
                let topResult = results.first {
                 DispatchQueue.main.async {
-                    predictionText = "Prediction: \(topResult.identifier) - Confidence: \(topResult.confidence * 100)%"
+                    let identifier = topResult.identifier
+                    let confidenceValue = Double(topResult.confidence) // This is 0.0-1.0
+                    
+                    self.classifiedIdentifier = identifier
+                    self.classifiedConfidence = confidenceValue
+                    
+                    // predictionText is just for display
+                    self.predictionText = "Prediction: \(identifier) - Confidence: \(String(format: "%.1f", confidenceValue * 100))%"
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.predictionText = "Analysis failed or no results."
+                    self.classifiedIdentifier = nil
+                    self.classifiedConfidence = nil
                 }
             }
         }
         
         let handler = VNImageRequestHandler(ciImage: ciImage, options: [:])
-        try? handler.perform([request])
+        do {
+            try handler.perform([request])
+        } catch {
+            DispatchQueue.main.async {
+                predictionText = "Error performing analysis: \(error.localizedDescription)"
+                self.classifiedIdentifier = nil
+                self.classifiedConfidence = nil
+            }
+        }
     }
     
-    // Add function to save analysis
     private func saveAnalysis(_ image: UIImage) {
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+        guard let imageData = image.jpegData(compressionQuality: 0.8),
+              let prediction = self.classifiedIdentifier,
+              let confidenceForStorage = self.classifiedConfidence else {
+            print("Cannot save analysis: classification data is missing or image data is invalid.")
+            return
+        }
         
-        // Parse prediction text to get confidence
-        let components = predictionText.components(separatedBy: "- Confidence: ")
-        let prediction = components[0].replacingOccurrences(of: "Prediction: ", with: "")
-        let confidenceString = components[1].replacingOccurrences(of: "%", with: "")
-        let confidence = Double(confidenceString) ?? 0.0
-        
+        // prediction (String) and confidenceForStorage (Double 0.0-1.0) are now directly from state, no parsing needed.
+
         let analysis = SkinAnalysis(imageData: imageData,
                                     prediction: prediction,
-                                    confidence: confidence/100.0)
-        
+                                    confidence: confidenceForStorage)
         analysisManager.addAnalysis(analysis)
+        
+        // Construct description for SkinEntry from the reliable data
+        let skinEntryDescription = "Prediction: \(prediction) - Confidence: \(String(format: "%.1f", confidenceForStorage * 100))%"
+        
+        let newSkinEntry = SkinEntry(image: image,
+                                     date: Date(),
+                                     description: skinEntryDescription,
+                                     confidence: confidenceForStorage)
+        self.entriesManager.addEntry(newSkinEntry)
+
+        // Optionally, provide feedback and clear results
+        self.predictionText = "Saved!"
+        // self.image = nil // You might want to clear the image or navigate away
+        // self.classifiedIdentifier = nil // Cleared when taking a new photo or if analysis fails
+        // self.classifiedConfidence = nil
     }
 }
 
@@ -161,5 +205,6 @@ struct CustomImagePicker: UIViewControllerRepresentable {
 struct CameraView_Previews: PreviewProvider {
     static var previews: some View {
         CameraView()
+            .environmentObject(SkinEntriesManager())
     }
 }

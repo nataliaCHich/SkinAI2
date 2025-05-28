@@ -3,26 +3,22 @@ import SwiftUI
 struct MainScreenView: View {
     @AppStorage("storedUserName") private var userName: String = "Beautiful"
     @State private var showProfile = false
-    @State private var showCamera = false
+    // @State private var showCamera = false 
     @State private var selectedTab = 0
-    
+    // @StateObject var entriesManager = SkinEntriesManager()
+
     var body: some View {
         NavigationStack {
-            // Main ZStack to hold both TabView and profile picture
             ZStack {
-                // TabView content remains the same but add selection binding
                 TabView(selection: $selectedTab) {
-                    // First Tab - Timeline
+                    // First Tab - Home
                     ZStack {
-                        // Gradient remains the same
                         LinearGradient(gradient: Gradient(colors: [
                             Color.blue.opacity(0.3),
                             Color.pink.opacity(0.0)
                         ]), startPoint: .topLeading, endPoint: .bottomTrailing)
                         .ignoresSafeArea()
                         
-                    
-                    //HOME VIEW CONTENT
                         VStack(spacing: 20) {
                             Spacer()
                                 .frame(height: 100)
@@ -34,9 +30,8 @@ struct MainScreenView: View {
                            
                             WeeklyTrackerView()
                             
-                            // Buttons with matching width
                             VStack(spacing: 20) {
-                                NavigationLink(destination: MySkinView()) {
+                                NavigationLink(destination: MySkinView()) { // MySkinView will get entriesManager from environment
                                     Text("My Skin")
                                         .font(.title2)
                                         .foregroundColor(.blue)
@@ -60,7 +55,6 @@ struct MainScreenView: View {
                             
                             Spacer()
                         }
-
                     }
                     .tabItem {
                         Image(systemName: "house.fill")
@@ -69,33 +63,15 @@ struct MainScreenView: View {
                     .tag(0)
                     
                     // Second Tab - Camera
-                    ZStack {
-                        TabView(selection: $selectedTab) {
-                            // First Tab (Home) remains exactly the same
-                            
-                            // Second Tab - Camera
-                            CameraView() // Replace the entire ZStack with CameraView
-                            .tabItem {
-                                
-                               
-                            }
-                            .tag(1)
-                            
-                            // Third Tab (Calendar) remains exactly the same
+                    CameraView() // CameraView will get entriesManager from environment
+                        .tabItem {
+                            Image(systemName: "camera.fill")
+                            Text("Camera")
                         }
-                        .accentColor(.blue)
-                        
-                        // Profile picture overlay remains exactly the same
-                    }
-                    .tabItem {
-                        Image(systemName: "camera.fill")
-                        CameraView()
-                    }
-                    .tag(1)
+                        .tag(1)
                     
                     // Third Tab - Calendar
                     ZStack {
-                        // Gradient remains the same
                         LinearGradient(gradient: Gradient(colors: [
                             Color.blue.opacity(0.3),
                             Color.pink.opacity(0.0)
@@ -113,24 +89,23 @@ struct MainScreenView: View {
                     .tag(2)
                 }
                 .accentColor(.blue)
+                // .environmentObject(entriesManager)
                 
                 // Profile picture overlay (will be visible on all tabs)
                 VStack {
                     HStack {
-                        // Home button
                         Button(action: {
                             selectedTab = 0 // Set tab to home
                         }) {
                             Image(systemName: "house.fill")
                                 .resizable()
                                 .frame(width: 40, height: 40)
-                                .foregroundColor(.blue.opacity(0))
+                                .foregroundColor(.blue.opacity(0)) // This seems intentionally transparent
                                 .padding(.leading, 20)
                         }
                         
                         Spacer()
                         
-                        // Convert profile image to button
                         Button(action: {
                             showProfile = true
                         }) {
@@ -156,5 +131,6 @@ struct MainScreenView: View {
 struct mainScreenView_Previews: PreviewProvider {
     static var previews: some View {
         MainScreenView()
+            .environmentObject(SkinEntriesManager())
     }
 }

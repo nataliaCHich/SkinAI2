@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct SkinAI2App: App {
+    @StateObject var entriesManager = SkinEntriesManager()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(entriesManager)
         }
     }
 }
