@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI // For PhotosPicker
 
 struct MyProductsView: View {
     @EnvironmentObject var productManager: ProductManager
@@ -135,27 +136,63 @@ struct AddProductView: View {
     @Environment(\.dismiss) var dismiss
 
     @State private var productName: String = ""
-    @State private var ingredientList: String = "e.g., Aqua, Glycerin, Salicylic Acid, Fragrance"
+    @State private var ingredientList: String = ""
+    @State private var placeholderText: String = "e.g., Aqua, Glycerin, Salicylic Acid"
     
     let currentSkinPredictionForAnalysis: String
+
+    @State private var showingCameraSheet = false
+    @State private var imageForOCR: UIImage? = nil
+
+    @State private var showScanIndicator = false
+    @State private var scanErrorMessage: String? = nil
+
+    private let ocrService = IngredientOCRService()
 
     var body: some View {
         NavigationView {
             Form {
                 Section("Product Details") {
                     TextField("Product Name", text: $productName)
-                    TextEditor(text: $ingredientList)
-                        .frame(height: 200)
-                        .foregroundColor(ingredientList == "e.g., Aqua, Glycerin, Salicylic Acid, Fragrance" ? .gray : .primary)
-                        .onTapGesture {
-                             if ingredientList == "e.g., Aqua, Glycerin, Salicylic Acid, Fragrance" {
-                                 ingredientList = ""
-                             }
-                         }
+                    
+                    Button {
+                        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                            showingCameraSheet = true
+                        } else {
+                            scanErrorMessage = "Camera is not available on this device."
+                        }
+                    } label: {
+                        Label("Scan Ingredients with Camera", systemImage: "camera")
+                    }
+                    
+                    if showScanIndicator {
+                        HStack {
+                            ProgressView()
+                            Text("Analyzing ingredients...")
+                        }
+                    }
+                    
+                    if let errorMessage = scanErrorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                    }
+
+                    ZStack(alignment: .topLeading) {
+                        if ingredientList.isEmpty {
+                            Text(placeholderText)
+                                .foregroundColor(Color(UIColor.placeholderText))
+                                .padding(.top, 8)
+                                .padding(.leading, 5)
+                                .allowsHitTesting(false)
+                        }
+                        TextEditor(text: $ingredientList)
+                            .frame(height: 200)
+                    }
                 }
 
                 Button("Add and Analyze Product") {
-                    if !productName.isEmpty && !ingredientList.isEmpty && ingredientList != "e.g., Aqua, Glycerin, Salicylic Acid, Fragrance" {
+                    if !productName.isEmpty && !ingredientList.isEmpty {
                         productManager.addProduct(
                             name: productName,
                             ingredientListText: ingredientList,
@@ -164,7 +201,7 @@ struct AddProductView: View {
                         dismiss()
                     }
                 }
-                .disabled(productName.isEmpty || ingredientList.isEmpty || ingredientList == "e.g., Aqua, Glycerin, Salicylic Acid, Fragrance")
+                .disabled(productName.isEmpty || ingredientList.isEmpty)
             }
             .navigationTitle("Add New Product")
             .toolbar {
@@ -172,6 +209,50 @@ struct AddProductView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                }
+            }
+            .sheet(isPresented: $showingCameraSheet) {
+                CustomImagePicker(image: $imageForOCR, sourceType: .camera)
+            }
+            .onChange(of: imageForOCR) { oldValue, newImage in
+                 if let image = newImage {
+                    scanErrorMessage = nil 
+                    scanIngredients(from: image)
+                    DispatchQueue.main.async { 
+                        self.imageForOCR = nil
+                    }
+                }
+            }
+        }
+    }
+
+    private func scanIngredients(from image: UIImage) {
+        showScanIndicator = true
+        scanErrorMessage = nil
+        ingredientList = ""
+
+        ocrService.recognizeIngredients(from: image) { result in
+            DispatchQueue.main.async {
+                showScanIndicator = false
+                
+                switch result {
+                case .success(let ingredients):
+                    if ingredients.isEmpty {
+                        scanErrorMessage = "No ingredients found in the image."
+                        ingredientList = "" 
+                    } else {
+                        ingredientList = ingredients.joined(separator: ", ")
+                    }
+                case .failure(let error):
+                    switch error {
+                    case .imageProcessingError:
+                        scanErrorMessage = "Error processing image."
+                    case .recognitionFailed:
+                        scanErrorMessage = "Ingredient recognition failed."
+                    case .noTextFound:
+                        scanErrorMessage = "No text found in the image to analyze."
+                    }
+                    ingredientList = "" 
                 }
             }
         }
