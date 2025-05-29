@@ -27,38 +27,46 @@ struct MyProductsView: View {
         NavigationView {
             ZStack {
                 LinearGradient(gradient: Gradient(colors: [
-                    Color.blue.opacity(0.3),
-                    Color.pink.opacity(0.0)
+                    Color.appBlue.opacity(0.3),
+                    Color.appPink.opacity(0.0)
                 ]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
 
-                VStack {
+                VStack(spacing: DesignSystem.Spacing.standard) {
                     List {
                         ForEach(productManager.products) { product in
                             ProductRow(product: product)
+                                .appCardStyle()
+                                .listRowBackground(Color.clear) 
+                                .listRowSeparator(.hidden) 
+                                .padding(.bottom, DesignSystem.Spacing.medium)
                         }
                         .onDelete(perform: productManager.deleteProduct)
                     }
-                    .listStyle(InsetGroupedListStyle())
-                    .scrollContentBackground(.hidden)
+                    .listStyle(PlainListStyle())
+                    .scrollContentBackground(.hidden) 
 
                     Button("Re-analyze Products for Current Skin") {
                         productManager.reanalyzeAllProducts(currentSkinConditionPrediction: currentSkinPrediction)
                     }
-                    .padding()
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(DesignSystem.AppPrimaryButtonStyle())
+                    .padding(.horizontal) 
+                    .padding(.bottom) 
                 }
+                .padding(.top)
             }
             .navigationTitle("My Products")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
+                        .foregroundColor(Color.accent) 
                 }
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
                         showingAddProductSheet = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
+                            .foregroundColor(Color.accent) 
                     }
                 }
             }
@@ -74,59 +82,70 @@ struct ProductRow: View {
     let product: Product
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.small) {
             Text(product.name)
                 .font(.headline)
+                .foregroundColor(Color.primaryText)
 
             if let advice = product.advice {
                 Text("Assessment for \(advice.forSkinCondition.rawValue): \(advice.assessment.rawValue)")
                     .font(.subheadline)
-                    .foregroundColor(colorForAssessment(advice.assessment))
+                    .foregroundColor(colorForAssessment(advice.assessment)) 
 
                 if !advice.positiveNotes.isEmpty {
-                    VStack(alignment: .leading) {
-                        Text("Good For You:").bold()
-                        ForEach(advice.positiveNotes, id: \.self) { Text($0).font(.caption) }
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.extraSmall) {
+                        Text("Good For You:").font(.caption.bold()).foregroundColor(Color.primaryText)
+                        ForEach(advice.positiveNotes, id: \.self) { Text($0).font(.caption).foregroundColor(Color.secondaryText) }
                     }
+                    .padding(.top, DesignSystem.Spacing.extraSmall)
                 }
                 if !advice.cautionaryNotes.isEmpty {
-                    VStack(alignment: .leading) {
-                        Text("Use with Caution:").bold()
-                        ForEach(advice.cautionaryNotes, id: \.self) { Text($0).font(.caption) }
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.extraSmall) {
+                        Text("Use with Caution:").font(.caption.bold()).foregroundColor(Color.primaryText)
+                        ForEach(advice.cautionaryNotes, id: \.self) { Text($0).font(.caption).foregroundColor(Color.secondaryText) }
                     }
+                    .padding(.top, DesignSystem.Spacing.extraSmall)
                 }
             } else {
                 Text("Not yet analyzed or analysis failed.")
                     .font(.subheadline)
+                    .foregroundColor(Color.secondaryText)
             }
 
             DisclosureGroup("Parsed Ingredients (\(product.analyzedIngredients?.count ?? 0))") {
                 if let ingredients = product.analyzedIngredients, !ingredients.isEmpty {
-                    ForEach(ingredients) { recognizedIng in
-                        VStack(alignment: .leading) {
-                            Text(recognizedIng.ingredientInfo.name)
-                                .font(.caption.bold())
-                            if let desc = recognizedIng.ingredientInfo.description {
-                                Text(desc).font(.caption2)
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.extraSmall) {
+                        ForEach(ingredients) { recognizedIng in
+                            VStack(alignment: .leading) {
+                                Text(recognizedIng.ingredientInfo.name)
+                                    .font(.caption.bold())
+                                    .foregroundColor(Color.primaryText)
+                                if let desc = recognizedIng.ingredientInfo.description {
+                                    Text(desc)
+                                        .font(.caption2)
+                                        .foregroundColor(Color.secondaryText)
+                                }
                             }
+                            .padding(.vertical, 2)
                         }
-                        .padding(.vertical, 2)
                     }
                 } else {
-                    Text("No ingredients recognized or list was empty.").font(.caption)
+                    Text("No ingredients recognized or list was empty.")
+                        .font(.caption)
+                        .foregroundColor(Color.secondaryText)
                 }
             }
             .font(.caption)
+            .accentColor(Color.accent) 
         }
-        .padding(.vertical)
     }
 
     func colorForAssessment(_ assessment: ProductAdvice.OverallAssessment) -> Color {
         switch assessment {
-        case .good: return .green
-        case .neutral: return .gray
-        case .useWithCaution: return .orange
-        case .potentiallyAvoid: return .red
+        case .good: return Color.skinGood
+        case .neutral: return Color.secondaryText 
+        case .useWithCaution: return Color.orange 
+        case .potentiallyAvoid: return Color.destructive 
         }
     }
 }
@@ -154,6 +173,7 @@ struct AddProductView: View {
             Form {
                 Section("Product Details") {
                     TextField("Product Name", text: $productName)
+                        .textFieldStyle(DesignSystem.AppTextFieldStyle())
                     
                     Button {
                         if UIImagePickerController.isSourceTypeAvailable(.camera) {
@@ -164,17 +184,20 @@ struct AddProductView: View {
                     } label: {
                         Label("Scan Ingredients with Camera", systemImage: "camera")
                     }
+                    .buttonStyle(DesignSystem.AppSecondaryButtonStyle()) 
                     
                     if showScanIndicator {
                         HStack {
                             ProgressView()
                             Text("Analyzing ingredients...")
+                                .font(.subheadline) 
+                                .foregroundColor(Color.secondaryText)
                         }
                     }
                     
                     if let errorMessage = scanErrorMessage {
                         Text(errorMessage)
-                            .foregroundColor(.red)
+                            .foregroundColor(Color.destructive) 
                             .font(.caption)
                     }
 
@@ -182,13 +205,23 @@ struct AddProductView: View {
                         if ingredientList.isEmpty {
                             Text(placeholderText)
                                 .foregroundColor(Color(UIColor.placeholderText))
-                                .padding(.top, 8)
-                                .padding(.leading, 5)
+                                .font(.subheadline) 
+                                .padding(DesignSystem.Spacing.medium) 
+                                .padding(.leading, 5) 
                                 .allowsHitTesting(false)
                         }
                         TextEditor(text: $ingredientList)
                             .frame(height: 200)
+                            .font(.subheadline) 
+                            .padding(DesignSystem.Spacing.small) 
+                            .background(Color.subtleBackground)
+                            .cornerRadius(DesignSystem.CornerRadius.standard)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.standard)
+                                    .stroke(Color.subtleBorder, lineWidth: 1)
+                            )
                     }
+                    .padding(.top, DesignSystem.Spacing.small) 
                 }
 
                 Button("Add and Analyze Product") {
@@ -201,6 +234,7 @@ struct AddProductView: View {
                         dismiss()
                     }
                 }
+                .buttonStyle(DesignSystem.AppPrimaryButtonStyle()) 
                 .disabled(productName.isEmpty || ingredientList.isEmpty)
             }
             .navigationTitle("Add New Product")
@@ -209,6 +243,7 @@ struct AddProductView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(Color.accent)
                 }
             }
             .sheet(isPresented: $showingCameraSheet) {
@@ -264,5 +299,10 @@ struct MyProductsView_Previews: PreviewProvider {
         MyProductsView()
             .environmentObject(ProductManager())
             .environmentObject(SkinEntriesManager())
+            .preferredColorScheme(.light) 
+        MyProductsView()
+            .environmentObject(ProductManager())
+            .environmentObject(SkinEntriesManager())
+            .preferredColorScheme(.dark) 
     }
 }
